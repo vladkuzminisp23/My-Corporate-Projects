@@ -10,3 +10,5 @@ pandas==2.1.3
 datasets==2.14.6
 sentencepiece==0.1.99
 python-multipart
+protobuf
+sentencepiece
