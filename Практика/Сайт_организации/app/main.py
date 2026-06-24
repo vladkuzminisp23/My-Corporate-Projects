@@ -6,6 +6,11 @@ from concurrent.futures import ThreadPoolExecutor
 from app.ml_models import analyze_sentiment, get_chatbot_response, recognize_image
 from app.database import SessionLocal, RequestLog
 import app.utils as utils
+from fastapi import Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+# Указываем папку с шаблонами
+templates = Jinja2Templates(directory="templates")
 
 app = FastAPI(title="Corporate AI Platform")
 
@@ -21,6 +26,10 @@ def log_request(endpoint: str, input_data: str, output_data: str):
     db.add(log)
     db.commit()
     db.close()
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/api/sentiment")
 async def sentiment_analysis(req: TextRequest, bg_tasks: BackgroundTasks):
