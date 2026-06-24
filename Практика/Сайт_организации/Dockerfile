@@ -13,8 +13,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем код
-COPY . .
+# Копируем код и папку с HTML-шаблонами
+COPY app/ ./app/
+COPY templates/ ./templates/
+COPY requirements.txt .
 
 # Открываем порт
 EXPOSE 8000
