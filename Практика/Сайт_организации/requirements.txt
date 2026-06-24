@@ -12,3 +12,4 @@ sentencepiece==0.1.99
 python-multipart
 protobuf
 sentencepiece
+jinja2
