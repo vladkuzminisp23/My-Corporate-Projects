@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корпоративная ИИ-Платформа</title>
+    <!-- Подключаем Tailwind CSS для мгновенной красоты -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+<div class="max-w-4xl mx-auto py-10 px-4">
+    <header class="text-center mb-12">
+        <h1 class="text-4xl font-extrabold text-indigo-600 mb-2">ИИ-Платформа Организации</h1>
+        <p class="text-gray-500">Анализ тональности, умный ассистент и распознавание изображений</p>
+    </header>
+
+    <!-- Карточка анализа тональности -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
+        <h2 class="text-2xl font-bold mb-4 flex items-center">
+            <span class="bg-indigo-100 text-indigo-600 p-2 rounded-lg mr-3">📊</span> Анализ тональности
+        </h2>
+        <textarea id="sentimentText" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none" rows="3" placeholder="Например: Мне очень понравилось обслуживание..."></textarea>
+        <button onclick="analyzeSentiment()" class="mt-3 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">Анализировать</button>
+        <div id="sentimentResult" class="mt-4 font-bold text-lg"></div>
+    </div>
+
+    <!-- Карточка ИИ-ассистента -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
+        <h2 class="text-2xl font-bold mb-4 flex items-center">
+            <span class="bg-green-100 text-green-600 p-2 rounded-lg mr-3">🤖</span> ИИ-Ассистент
+        </h2>
+        <textarea id="chatText" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-400 outline-none" rows="2" placeholder="Например: Как вернуть товар?"></textarea>
+        <button onclick="askChatbot()" class="mt-3 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">Спросить</button>
+        <div id="chatResult" class="mt-4 p-4 bg-gray-50 rounded-lg text-gray-700"></div>
+    </div>
+
+    <!-- Карточка распознавания фото -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
+        <h2 class="text-2xl font-bold mb-4 flex items-center">
+            <span class="bg-purple-100 text-purple-600 p-2 rounded-lg mr-3">🖼️</span> Распознавание изображений
+        </h2>
+        <input type="file" id="imageFile" accept="image/*" class="mb-3 w-full p-2 border rounded-lg">
+        <button onclick="recognizeImage()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">Распознать</button>
+        <div id="imageResult" class="mt-4 flex flex-col items-center"></div>
+    </div>
+</div>
+
+<script>
+    async function analyzeSentiment() {
+        const text = document.getElementById('sentimentText').value;
+        const resBox = document.getElementById('sentimentResult');
+        resBox.innerHTML = "<span class='text-gray-400'>Анализирую...</span>";
+        
+        const response = await fetch('/api/sentiment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+        const data = await response.json();
+        
+        if(data.sentiment === "Позитив") resBox.innerHTML = `<span class="text-green-600">😊 ${data.sentiment}</span>`;
+        else if(data.sentiment === "Негатив") resBox.innerHTML = `<span class="text-red-600">😠 ${data.sentiment}</span>`;
+        else resBox.innerHTML = `<span class="text-gray-600">😐 ${data.sentiment}</span>`;
+    }
+
+    async function askChatbot() {
+        const text = document.getElementById('chatText').value;
+        const resBox = document.getElementById('chatResult');
+        resBox.innerHTML = "<span class='text-gray-400'>Думаю...</span>";
+        
+        const response = await fetch('/api/chatbot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+        });
+        const data = await response.json();
+        resBox.innerHTML = `<p class="fade-in"><strong>Ответ ИИ:</strong> ${data.response}</p>`;
+    }
+
+    async function recognizeImage() {
+        const fileInput = document.getElementById('imageFile');
+        const resBox = document.getElementById('imageResult');
+        if (!fileInput.files[0]) { alert("Выберите файл!"); return; }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        resBox.innerHTML = "<span class='text-gray-400'>Распознаю...</span>";
+
+        const response = await fetch('/api/image-recognition', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+
+        resBox.innerHTML = `
+            <img src="${URL.createObjectURL(fileInput.files[0])}" class="w-64 h-64 object-cover rounded-lg mb-4 shadow-md">
+            <ul class="text-left">
+                ${data.predictions.map(p => `<li class="fade-in mb-1">📍 <strong>${p.label}</strong> (${(p.score * 100).toFixed(1)}%)</li>`).join('')}
+            </ul>
+        `;
+    }
+</script>
+</body>
+</html>
